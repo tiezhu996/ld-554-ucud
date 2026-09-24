@@ -58,4 +58,19 @@ export const UserRole = {
   EMPLOYEE: 'EMPLOYEE'
 } as const;
 
+export const AuditAction = {
+  CREATE_TRANSACTION: 'CREATE_TRANSACTION',
+  UPDATE_TRANSACTION: 'UPDATE_TRANSACTION',
+  REVIEW_TRANSACTION: 'REVIEW_TRANSACTION',
+  DELETE_TRANSACTION: 'DELETE_TRANSACTION'
+} as const;
+
+export const AuditActionLabel = {
+  [AuditAction.CREATE_TRANSACTION]: '记账',
+  [AuditAction.UPDATE_TRANSACTION]: '修改账目',
+  [AuditAction.REVIEW_TRANSACTION]: '审核',
+  [AuditAction.DELETE_TRANSACTION]: '删除账目'
+} as const;
+
 export type UserRoleValue = (typeof UserRole)[keyof typeof UserRole];
+export type AuditActionValue = (typeof AuditAction)[keyof typeof AuditAction];

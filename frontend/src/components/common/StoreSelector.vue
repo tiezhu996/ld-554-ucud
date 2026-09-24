@@ -8,10 +8,10 @@
 import { onMounted, ref } from 'vue';
 import { useStoreStore } from '@/stores/storeStore';
 
-withDefaults(defineProps<{ multiple?: boolean }>(), { multiple: false });
+const props = withDefaults(defineProps<{ multiple?: boolean; defaultValue?: number }>(), { multiple: false, defaultValue: undefined });
 defineEmits<{ change: [number | number[] | undefined] }>();
 
 const stores = useStoreStore();
-const value = ref<number | number[]>();
+const value = ref<number | number[] | undefined>(props.defaultValue);
 onMounted(() => stores.load());
 </script>

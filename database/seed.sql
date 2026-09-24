@@ -35,8 +35,14 @@ INSERT INTO shifts (employee_id, date, shift_type, start_time, end_time, store_i
 (3, CURDATE(), 'AFTERNOON', '13:30:00', '18:30:00', 1, 'CONFIRMED'),
 (4, CURDATE(), 'REST', '00:00:00', '00:00:00', 2, 'PENDING');
 
-INSERT INTO transactions (type, category, amount, description, related_employee_id, store_id, date, receipt, reviewed) VALUES
-('INCOME', 'SALES', 28600.00, '湖滨旗舰店日销售收入', NULL, 1, CURDATE(), '/receipts/sales-001.jpg', TRUE),
-('EXPENSE', 'SALARY', 9800.00, '试用期员工工资', 3, 1, CURDATE(), '/receipts/salary-003.pdf', FALSE),
-('EXPENSE', 'RENT', 18000.00, '城西社区店月租', NULL, 2, CURDATE(), '/receipts/rent-002.pdf', TRUE),
-('INCOME', 'SALES', 14600.00, '城西社区店日销售收入', NULL, 2, CURDATE(), '/receipts/sales-002.jpg', TRUE);
+INSERT INTO transactions (id, type, category, amount, description, related_employee_id, store_id, date, receipt, reviewed) VALUES
+(1, 'INCOME', 'SALES', 28600.00, '湖滨旗舰店日销售收入', NULL, 1, CURDATE(), '/receipts/sales-001.jpg', TRUE),
+(2, 'EXPENSE', 'SALARY', 9800.00, '试用期员工工资', 3, 1, CURDATE(), '/receipts/salary-003.pdf', FALSE),
+(3, 'EXPENSE', 'RENT', 18000.00, '城西社区店月租', NULL, 2, CURDATE(), '/receipts/rent-002.pdf', TRUE),
+(4, 'INCOME', 'SALES', 14600.00, '城西社区店日销售收入', NULL, 2, CURDATE(), '/receipts/sales-002.jpg', TRUE);
+
+INSERT INTO audit_logs (operator_id, action, target, store_id, old_value, new_value, ip, timestamp) VALUES
+(1, 'CREATE_TRANSACTION', 'transactions#1', 1, NULL, '{"id":1,"type":"INCOME","category":"SALES","amount":"28600.00","description":"湖滨旗舰店日销售收入","relatedEmployeeId":null,"storeId":1,"reviewed":false}', '127.0.0.1', NOW()),
+(1, 'REVIEW_TRANSACTION', 'transactions#1', 1, '{"id":1,"type":"INCOME","category":"SALES","amount":"28600.00","description":"湖滨旗舰店日销售收入","relatedEmployeeId":null,"storeId":1,"reviewed":false}', '{"id":1,"type":"INCOME","category":"SALES","amount":"28600.00","description":"湖滨旗舰店日销售收入","relatedEmployeeId":null,"storeId":1,"reviewed":true}', '127.0.0.1', NOW()),
+(2, 'CREATE_TRANSACTION', 'transactions#2', 1, NULL, '{"id":2,"type":"EXPENSE","category":"SALARY","amount":"9800.00","description":"试用期员工工资","relatedEmployeeId":3,"storeId":1,"reviewed":false}', '127.0.0.1', NOW()),
+(1, 'UPDATE_TRANSACTION', 'transactions#3', 2, '{"id":3,"type":"EXPENSE","category":"RENT","amount":"17500.00","description":"城西社区店月租","relatedEmployeeId":null,"storeId":2,"reviewed":false}', '{"id":3,"type":"EXPENSE","category":"RENT","amount":"18000.00","description":"城西社区店月租","relatedEmployeeId":null,"storeId":2,"reviewed":false}', '127.0.0.1', NOW());

@@ -7,7 +7,8 @@ BizStarter 面向创业公司与小微企业，覆盖员工管理、排班调度
 - 管理仪表盘：收入支出对比、出勤率、门店营收 TOP、待办事项和快速入口。
 - 员工管理：花名册筛选、组织树、入职登记、详情抽屉、转正/调岗/离职入口基础结构。
 - 排班管理：周视图、自动排班、换班申请流程、月度工时统计。
-- 财务管理：收支记录、记账表单、分类统计、利润报表导出。
+- 财务管理：收支记录、记账表单、修改/审核、分类统计、利润报表导出。
+- 操作日志：财务变更全程留痕（经办人、动作、门店、修改前后内容、时间），老板查全部门店，店长只看本门店，支持按经办人/动作/日期筛选。
 - 门店管理：卡片/表格视图、业绩对比、人员配置、门店详情。
 - 横切能力：JWT 认证、RBAC、按钮权限、数据范围过滤、统一异常处理、操作审计。
 
@@ -97,6 +98,7 @@ database/   init.sql 和 seed.sql
 | TransactionType | INCOME / EXPENSE | `frontend/src/constants/enums.ts`、`frontend/src/pages/finance/FinanceList.vue`、`frontend/src/pages/finance/FinanceForm.vue`、`frontend/src/stores/transactionStore.ts`、`frontend/src/pages/Dashboard.vue`、`backend/src/constants/enums.ts`、`backend/src/models/transaction.model.ts`、`backend/src/services/dashboard.service.ts`、`database/init.sql`、`database/seed.sql` |
 | TransactionCategory | SALARY / PURCHASE / RENT / UTILITY / SALES / OTHER | `frontend/src/constants/enums.ts`、`frontend/src/pages/finance/FinanceList.vue`、`frontend/src/pages/finance/FinanceForm.vue`、`frontend/src/stores/transactionStore.ts`、`backend/src/constants/enums.ts`、`backend/src/models/transaction.model.ts`、`database/init.sql`、`database/seed.sql` |
 | UserRole | OWNER / MANAGER / EMPLOYEE | `frontend/src/constants/enums.ts`、`frontend/src/hooks/usePermission.ts`、`frontend/src/router/guards.ts`、`frontend/src/router/routes/*.ts`、`frontend/src/main.ts`、`backend/src/constants/enums.ts`、`backend/src/constants/permissions.ts`、`backend/src/models/user.model.ts`、`backend/src/models/employee.model.ts`、`backend/src/middlewares/rbac.middleware.ts`、`backend/src/services/scope.service.ts`、`backend/src/routes/*.routes.ts`、`database/init.sql`、`database/seed.sql` |
+| AuditAction | CREATE_TRANSACTION / UPDATE_TRANSACTION / REVIEW_TRANSACTION / DELETE_TRANSACTION | `frontend/src/constants/enums.ts`、`frontend/src/pages/finance/AuditLogList.vue`、`backend/src/constants/enums.ts`、`backend/src/services/transaction.service.ts`、`database/seed.sql` |
 
 ## 全局异常处理
 
@@ -104,7 +106,11 @@ database/   init.sql 和 seed.sql
 
 ## 操作日志说明
 
-后端 `audit.middleware.ts` 会审计财务新增/修改/删除、员工新增/修改/删除、排班创建/自动排班/修改、门店新增/修改/删除等关键操作，记录到 `audit_logs` 表，字段包含 `operatorId`、`action`、`target`、`oldValue`、`newValue`、`ip`、`timestamp`。
+**财务变更追溯（核心）**：记账、修改、审核、删除财务记录时，后端在 `transaction.service.ts` 中把"账目变动 + 审计日志"放进**同一个数据库事务**写入 `audit_logs` 表，日志包含经办人（`operatorId`）、动作（`action`）、门店（`storeId`）、修改前内容（`oldValue`）、修改后内容（`newValue`）、IP 和发生时间（`timestamp`）。**日志写入失败则整个事务回滚，账目变动不生效**，接口返回错误，前端保存页明确提示"保存失败"。
+
+**操作日志页**：`/finance/logs` 展示财务操作日志，老板（Owner）可查全部门店，店长（Manager）只能看自己门店（后端按角色强制注入门店过滤），支持按经办人、动作、日期范围筛选；接口为 `GET /api/audit-logs`（数据范围隔离）与 `GET /api/audit-logs/operators`（经办人下拉）。
+
+**其他模块**：`audit.middleware.ts` 仍会审计员工新增/修改/删除、排班创建/自动排班/修改、门店新增/修改/删除等操作，记录到同一张 `audit_logs` 表。
 
 ## RBAC 权限矩阵
 
@@ -114,6 +120,7 @@ database/   init.sql 和 seed.sql
 | 员工 | 增删改查 | 新增/查看/修改门店范围 | 查看本人/门店范围 |
 | 排班 | 增删改查/自动排班 | 新增/查看/修改门店范围 | 查看个人排班 |
 | 财务 | 增删改查/审核 | 新增/查看门店范围 | 无 |
+| 操作日志 | 查看全部门店 | 查看本门店 | 无 |
 | 门店 | 增删改查 | 查看/修改负责门店 | 无 |
 | 系统设置 | 全部 | 无 | 无 |
 
