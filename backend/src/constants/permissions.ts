@@ -16,8 +16,12 @@ export const permissions = {
   transactions: {
     read: [UserRole.OWNER, UserRole.MANAGER],
     create: [UserRole.OWNER, UserRole.MANAGER],
-    update: [UserRole.OWNER],
+    update: [UserRole.OWNER, UserRole.MANAGER],
+    review: [UserRole.OWNER],
     delete: [UserRole.OWNER]
+  },
+  auditLogs: {
+    read: [UserRole.OWNER, UserRole.MANAGER]
   },
   stores: {
     read: [UserRole.OWNER, UserRole.MANAGER],

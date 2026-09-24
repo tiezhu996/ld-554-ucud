@@ -14,3 +14,11 @@ export function directStoreScope(user?: AuthUser): WhereOptions {
   if (user.storeId) return { id: user.storeId };
   return {};
 }
+
+/** 写操作门店范围校验：店长只能操作自己负责门店的数据。 */
+export function assertStoreAllowed(storeId: number, user?: AuthUser) {
+  if (!user || user.role === UserRole.OWNER) return;
+  if (!user.storeId || user.storeId !== Number(storeId)) {
+    throw Object.assign(new Error('无权操作其他门店的数据'), { status: 403 });
+  }
+}

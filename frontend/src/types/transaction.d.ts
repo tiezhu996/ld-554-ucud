@@ -1,4 +1,5 @@
 import type { TransactionCategory, TransactionType } from '@/constants/enums';
+import type { Store } from './store';
 
 export interface Transaction {
   id: number;
@@ -11,4 +12,5 @@ export interface Transaction {
   date: string;
   receipt: string | null;
   reviewed: boolean;
+  Store?: Store;
 }

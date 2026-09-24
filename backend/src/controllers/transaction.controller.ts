@@ -2,6 +2,10 @@ import type { NextFunction, Request, Response } from 'express';
 import * as transactionService from '../services/transaction.service.js';
 import { created, success } from '../utils/response.js';
 
+function clientIp(req: Request) {
+  return req.ip ?? 'unknown';
+}
+
 export async function index(req: Request, res: Response, next: NextFunction) {
   try {
     success(res, await transactionService.listTransactions(req.query, req.user));
@@ -12,7 +16,7 @@ export async function index(req: Request, res: Response, next: NextFunction) {
 
 export async function create(req: Request, res: Response, next: NextFunction) {
   try {
-    created(res, await transactionService.createTransaction(req.body));
+    created(res, await transactionService.createTransaction(req.body, req.user!, clientIp(req)));
   } catch (error) {
     next(error);
   }
@@ -20,7 +24,16 @@ export async function create(req: Request, res: Response, next: NextFunction) {
 
 export async function update(req: Request, res: Response, next: NextFunction) {
   try {
-    success(res, await transactionService.updateTransaction(Number(req.params.id), req.body));
+    success(res, await transactionService.updateTransaction(Number(req.params.id), req.body, req.user!, clientIp(req)));
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function review(req: Request, res: Response, next: NextFunction) {
+  try {
+    const reviewed = Boolean(req.body.reviewed ?? true);
+    success(res, await transactionService.reviewTransaction(Number(req.params.id), reviewed, req.user!, clientIp(req)));
   } catch (error) {
     next(error);
   }
@@ -28,7 +41,7 @@ export async function update(req: Request, res: Response, next: NextFunction) {
 
 export async function remove(req: Request, res: Response, next: NextFunction) {
   try {
-    await transactionService.deleteTransaction(Number(req.params.id));
+    await transactionService.deleteTransaction(Number(req.params.id), req.user!, clientIp(req));
     success(res);
   } catch (error) {
     next(error);

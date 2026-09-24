@@ -90,9 +90,13 @@ CREATE TABLE IF NOT EXISTS audit_logs (
   operator_id INT NULL,
   action VARCHAR(80) NOT NULL,
   target VARCHAR(120) NOT NULL,
+  target_id INT NULL,
+  store_id INT NULL,
   old_value TEXT NULL,
   new_value TEXT NULL,
   ip VARCHAR(60) NOT NULL,
   timestamp DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  CONSTRAINT fk_audit_operator FOREIGN KEY (operator_id) REFERENCES users(id) ON DELETE SET NULL
+  INDEX idx_audit_finance (target, store_id, timestamp),
+  CONSTRAINT fk_audit_operator FOREIGN KEY (operator_id) REFERENCES users(id) ON DELETE SET NULL,
+  CONSTRAINT fk_audit_store FOREIGN KEY (store_id) REFERENCES stores(id) ON DELETE SET NULL
 );

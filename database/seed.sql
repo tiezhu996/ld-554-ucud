@@ -25,8 +25,9 @@ INSERT INTO permissions (role, module, action) VALUES
 ('OWNER','employees','create'),('OWNER','employees','read'),('OWNER','employees','update'),('OWNER','employees','delete'),
 ('MANAGER','employees','create'),('MANAGER','employees','read'),('MANAGER','employees','update'),
 ('EMPLOYEE','employees','read'),
-('OWNER','transactions','create'),('OWNER','transactions','read'),('OWNER','transactions','update'),('OWNER','transactions','delete'),
-('MANAGER','transactions','create'),('MANAGER','transactions','read'),
+('OWNER','transactions','create'),('OWNER','transactions','read'),('OWNER','transactions','update'),('OWNER','transactions','review'),('OWNER','transactions','delete'),
+('MANAGER','transactions','create'),('MANAGER','transactions','read'),('MANAGER','transactions','update'),
+('OWNER','audit_logs','read'),('MANAGER','audit_logs','read'),
 ('OWNER','stores','create'),('OWNER','stores','read'),('OWNER','stores','update'),('OWNER','stores','delete'),
 ('MANAGER','stores','read'),('MANAGER','stores','update');
 
@@ -40,3 +41,16 @@ INSERT INTO transactions (type, category, amount, description, related_employee_
 ('EXPENSE', 'SALARY', 9800.00, '试用期员工工资', 3, 1, CURDATE(), '/receipts/salary-003.pdf', FALSE),
 ('EXPENSE', 'RENT', 18000.00, '城西社区店月租', NULL, 2, CURDATE(), '/receipts/rent-002.pdf', TRUE),
 ('INCOME', 'SALES', 14600.00, '城西社区店日销售收入', NULL, 2, CURDATE(), '/receipts/sales-002.jpg', TRUE);
+
+INSERT INTO audit_logs (operator_id, action, target, target_id, store_id, old_value, new_value, ip, timestamp)
+SELECT 2, 'CREATE_TRANSACTION', 'transactions', t.id, t.store_id, NULL,
+       JSON_OBJECT('type', t.type, 'category', t.category, 'amount', t.amount, 'description', t.description, 'storeId', t.store_id, 'date', t.date, 'reviewed', t.reviewed),
+       '127.0.0.1', NOW()
+FROM transactions t WHERE t.description = '城西社区店日销售收入';
+
+INSERT INTO audit_logs (operator_id, action, target, target_id, store_id, old_value, new_value, ip, timestamp)
+SELECT 1, 'REVIEW_TRANSACTION', 'transactions', t.id, t.store_id,
+       JSON_OBJECT('reviewed', FALSE),
+       JSON_OBJECT('reviewed', TRUE),
+       '127.0.0.1', NOW()
+FROM transactions t WHERE t.description = '湖滨旗舰店日销售收入';

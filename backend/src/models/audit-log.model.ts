@@ -6,6 +6,8 @@ export class AuditLog extends Model<InferAttributes<AuditLog>, InferCreationAttr
   declare operatorId: number | null;
   declare action: string;
   declare target: string;
+  declare targetId: number | null;
+  declare storeId: number | null;
   declare oldValue: string | null;
   declare newValue: string | null;
   declare ip: string;
@@ -18,6 +20,8 @@ AuditLog.init(
     operatorId: { type: DataTypes.INTEGER, allowNull: true },
     action: { type: DataTypes.STRING(80), allowNull: false },
     target: { type: DataTypes.STRING(120), allowNull: false },
+    targetId: { type: DataTypes.INTEGER, allowNull: true },
+    storeId: { type: DataTypes.INTEGER, allowNull: true },
     oldValue: { type: DataTypes.TEXT, allowNull: true },
     newValue: { type: DataTypes.TEXT, allowNull: true },
     ip: { type: DataTypes.STRING(60), allowNull: false },

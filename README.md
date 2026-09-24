@@ -97,6 +97,7 @@ database/   init.sql 和 seed.sql
 | TransactionType | INCOME / EXPENSE | `frontend/src/constants/enums.ts`、`frontend/src/pages/finance/FinanceList.vue`、`frontend/src/pages/finance/FinanceForm.vue`、`frontend/src/stores/transactionStore.ts`、`frontend/src/pages/Dashboard.vue`、`backend/src/constants/enums.ts`、`backend/src/models/transaction.model.ts`、`backend/src/services/dashboard.service.ts`、`database/init.sql`、`database/seed.sql` |
 | TransactionCategory | SALARY / PURCHASE / RENT / UTILITY / SALES / OTHER | `frontend/src/constants/enums.ts`、`frontend/src/pages/finance/FinanceList.vue`、`frontend/src/pages/finance/FinanceForm.vue`、`frontend/src/stores/transactionStore.ts`、`backend/src/constants/enums.ts`、`backend/src/models/transaction.model.ts`、`database/init.sql`、`database/seed.sql` |
 | UserRole | OWNER / MANAGER / EMPLOYEE | `frontend/src/constants/enums.ts`、`frontend/src/hooks/usePermission.ts`、`frontend/src/router/guards.ts`、`frontend/src/router/routes/*.ts`、`frontend/src/main.ts`、`backend/src/constants/enums.ts`、`backend/src/constants/permissions.ts`、`backend/src/models/user.model.ts`、`backend/src/models/employee.model.ts`、`backend/src/middlewares/rbac.middleware.ts`、`backend/src/services/scope.service.ts`、`backend/src/routes/*.routes.ts`、`database/init.sql`、`database/seed.sql` |
+| FinanceAuditAction | CREATE_TRANSACTION / UPDATE_TRANSACTION / DELETE_TRANSACTION / REVIEW_TRANSACTION | `frontend/src/constants/enums.ts`、`frontend/src/pages/finance/FinanceAuditLogs.vue`、`backend/src/constants/enums.ts`、`backend/src/services/transaction.service.ts`、`backend/src/services/audit.service.ts`、`database/seed.sql` |
 
 ## 全局异常处理
 
@@ -104,7 +105,16 @@ database/   init.sql 和 seed.sql
 
 ## 操作日志说明
 
-后端 `audit.middleware.ts` 会审计财务新增/修改/删除、员工新增/修改/删除、排班创建/自动排班/修改、门店新增/修改/删除等关键操作，记录到 `audit_logs` 表，字段包含 `operatorId`、`action`、`target`、`oldValue`、`newValue`、`ip`、`timestamp`。
+财务变更全程留痕。记账（`CREATE_TRANSACTION`）、修改（`UPDATE_TRANSACTION`）、删除（`DELETE_TRANSACTION`）、审核（`REVIEW_TRANSACTION`）四类动作都会在**同一个数据库事务**内写入 `audit_logs` 表：先改账目、再写日志，任一步失败整体回滚，因此**日志写入失败时账目变动不会生效**，前端保存页会明确提示“保存失败，账目未发生变动”且不关闭表单。
+
+每条财务日志包含：经办人（`operatorId`，关联用户）、动作（`action`）、门店（`storeId`）、目标账目 ID（`targetId`）、修改前内容（`oldValue`）、修改后内容（`newValue`，完整 JSON 快照）、IP（`ip`）和发生时间（`timestamp`）。
+
+操作日志页（`/finance/audit-logs`）：
+
+- 老板（OWNER）可查**全部门店**，并可按门店进一步筛选；店长（MANAGER）只能查看**自己负责门店**的日志，数据范围在后端服务层强制过滤。
+- 支持按**经办人、动作、日期区间**组合筛选，并可查看每条日志修改前后的具体内容。
+
+其他模块（员工、排班、门店）的关键操作仍由 `audit.middleware.ts` 审计到同一张 `audit_logs` 表。
 
 ## RBAC 权限矩阵
 
@@ -113,7 +123,8 @@ database/   init.sql 和 seed.sql
 | 仪表盘 | 查看 | 查看门店范围 | 查看个人范围 |
 | 员工 | 增删改查 | 新增/查看/修改门店范围 | 查看本人/门店范围 |
 | 排班 | 增删改查/自动排班 | 新增/查看/修改门店范围 | 查看个人排班 |
-| 财务 | 增删改查/审核 | 新增/查看门店范围 | 无 |
+| 财务 | 增删改查/审核 | 新增/查看/修改/查看日志（限本门店） | 无 |
+| 财务操作日志 | 查全部门店 | 仅查本门店 | 无 |
 | 门店 | 增删改查 | 查看/修改负责门店 | 无 |
 | 系统设置 | 全部 | 无 | 无 |
 

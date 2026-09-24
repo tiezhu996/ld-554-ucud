@@ -23,6 +23,7 @@ Transaction.belongsTo(Store, { foreignKey: 'storeId' });
 
 User.belongsTo(Employee, { foreignKey: 'employeeId' });
 User.belongsTo(Store, { foreignKey: 'storeId' });
-AuditLog.belongsTo(User, { foreignKey: 'operatorId' });
+AuditLog.belongsTo(User, { as: 'operator', foreignKey: 'operatorId' });
+AuditLog.belongsTo(Store, { as: 'store', foreignKey: 'storeId' });
 
 export { Employee, Store, Shift, Transaction, User, AuditLog };
